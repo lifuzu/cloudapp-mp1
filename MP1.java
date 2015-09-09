@@ -3,6 +3,18 @@ import java.lang.reflect.Array;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.io.*;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.TreeMap;
 
 public class MP1 {
     Random generator;
@@ -53,6 +65,66 @@ public class MP1 {
         String[] ret = new String[20];
        
         //TODO
+        int counter = 0;
+        String line = null;
+        FileReader fileReader = null;
+        BufferedReader bufferedReader = null;
+        Map<String, Integer> map = new HashMap<String, Integer>();
+
+        Integer[] sorted = getIndexes();
+        Arrays.sort(sorted);
+
+        try {
+            fileReader = new FileReader(this.inputFileName);
+            bufferedReader = new BufferedReader(fileReader);
+            while((line = bufferedReader.readLine()) != null) {
+                if (Arrays.asList(sorted).contains(counter)) {
+                    Integer times = Collections.frequency(Arrays.asList(sorted), counter);
+                    // System.out.println("Line: " + counter + " - " + line);
+                    StringTokenizer st = new StringTokenizer(line, this.delimiters);
+                    while (st.hasMoreTokens()) {
+                        String token = st.nextToken().trim().toLowerCase();
+                        if (!Arrays.asList(stopWordsArray).contains(token)) {
+                            Integer freq = map.get(token);
+                            map.put(token, (freq == null) ? 1 * times: freq + 1 * times);
+                        }
+                    }
+                }
+                counter++;
+            }
+
+            // System.out.println( "disambiguation: " + map.get("disambiguation") );
+            // System.out.println( "county: " + map.get("county"));
+            // System.out.println(new PrettyPrintingMap<String, Integer>(map));
+            Map<String, Integer> sorted_map = sortByValues(sortByKeys(map));
+            Set<String> keys = sorted_map.keySet();
+            String[] array = keys.toArray(new String[keys.size()]);
+            ret = Arrays.copyOf(array, 20);
+            // for (String item: ret){
+            //     System.out.println( item + " - " + sorted_map.get(item));
+            // }
+            // System.out.println("results: " + ret);
+
+        } catch(FileNotFoundException ex) {
+            System.out.println(
+                "Unable to open file '" +
+                this.inputFileName + "'");
+        }
+        catch(IOException ex) {
+            System.out.println(
+                "Error reading file '"
+                + this.inputFileName + "'");
+            // Or we could just do this:
+            // ex.printStackTrace();
+        }
+        finally
+        {
+            if(fileReader != null){
+               // Always close files.
+               bufferedReader.close();
+            }
+        }
+        // End of TODO
 
         return ret;
     }
@@ -70,5 +142,52 @@ public class MP1 {
                 System.out.println(item);
             }
         }
+    }
+
+    /*
+     * Paramterized method to sort Map e.g. HashMap or Hashtable in Java
+     * throw NullPointerException if Map contains null key
+     */
+    @SuppressWarnings("unchecked")
+    public static <K extends Comparable,V extends Comparable> Map<K,V> sortByKeys(Map<K,V> map){
+        List<K> keys = new LinkedList<K>(map.keySet());
+        Collections.sort(keys);
+
+        //LinkedHashMap will keep the keys in the order they are inserted
+        //which is currently sorted on natural ordering
+        Map<K,V> sortedMap = new LinkedHashMap<K,V>();
+        for(K key: keys){
+            sortedMap.put(key, map.get(key));
+        }
+
+        return sortedMap;
+    }
+
+    /*
+     * Java method to sort Map in Java by value e.g. HashMap or Hashtable
+     * throw NullPointerException if Map contains null values
+     * It also sort values even if they are duplicates
+     */
+    public static <K extends Comparable,V extends Comparable> Map<K,V> sortByValues(Map<K,V> map){
+        List<Map.Entry<K,V>> entries = new LinkedList<Map.Entry<K,V>>(map.entrySet());
+
+        Collections.sort(entries, new Comparator<Map.Entry<K,V>>() {
+
+            @Override
+            @SuppressWarnings("unchecked")
+            public int compare(Entry<K, V> o1, Entry<K, V> o2) {
+                return o2.getValue().compareTo(o1.getValue());
+            }
+        });
+
+        //LinkedHashMap will keep the keys in the order they are inserted
+        //which is currently sorted on natural ordering
+        Map<K,V> sortedMap = new LinkedHashMap<K,V>();
+
+        for(Map.Entry<K,V> entry: entries){
+            sortedMap.put(entry.getKey(), entry.getValue());
+        }
+
+        return sortedMap;
     }
 }

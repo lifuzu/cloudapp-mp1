@@ -1,0 +1,6 @@
+Manifest-Version: 1.0
+Application-Name: MP1
+Sealed: true
+Main-Class: MP1
+Class-Path: .
+Codebase: www.mysite.com
